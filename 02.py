@@ -12,7 +12,7 @@ def run(mem):
         pc += 4
 
 
-with open('02/input.txt') as inFile:
+with open('input/02.txt') as inFile:
     inp = inFile.readline().split(',')
     inp = list(map(int, inp))
     

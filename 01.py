@@ -12,7 +12,7 @@ def fuel2(mass):
         return m_fuel
 
 
-with open('01/input.txt') as inFile:
+with open('input/01.txt') as inFile:
     modules = inFile.readlines()
     print(sum(map(fuel, modules))) # Part 1
 
