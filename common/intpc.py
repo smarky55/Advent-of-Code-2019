@@ -1,9 +1,11 @@
-
+from collections import deque
 
 class IntPC:
     def __init__(self, memory):
         self.memory = list(memory)
         self.pc = 0
+        self.inQueue  = deque()
+        self.outQueue = deque()
 
     def run(self):
         while 1:
@@ -80,12 +82,12 @@ class IntPC:
         self.pc += 4
 
     def read(self):
-        data = int(input())
+        data = self.inQueue.popleft()
         self.store(self.pc+1, data, 0)
         self.pc += 2
 
     def print(self, mode):
-        print(self.fetch(self.pc+1, mode[0]))
+        self.outQueue.append(self.fetch(self.pc+1, mode[0]))
         self.pc += 2
 
     def jumpIfTrue(self, mode):
