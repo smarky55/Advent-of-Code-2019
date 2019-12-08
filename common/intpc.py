@@ -8,38 +8,41 @@ class IntPC:
         self.outQueue = deque()
 
     def run(self):
-        while 1:
-            instr = self.memory[self.pc]
-            opc, modeStr = self.decode(instr)
-            if opc == 1:
-                modes = self.getModes(modeStr, 3)
-                self.add(modes)
-            elif opc == 2:
-                modes = self.getModes(modeStr, 3)
-                self.mul(modes)
-            elif opc == 3:
-                self.read()
-            elif opc == 4:
-                modes = self.getModes(modeStr, 1)
-                self.print(modes)
-            elif opc == 5:
-                modes = self.getModes(modeStr, 2)
-                self.jumpIfTrue(modes)
-            elif opc == 6:
-                modes = self.getModes(modeStr, 2)
-                self.jumpIfFalse(modes)
-            elif opc == 7:
-                modes = self.getModes(modeStr, 3)
-                self.lessThan(modes)
-            elif opc == 8:
-                modes = self.getModes(modeStr, 3)
-                self.equal(modes)
-            elif opc == 99:
-                break
-            else:
-                print('Error!')
-                break
+        while self.step():
+            pass
 
+    def step(self):
+        instr = self.memory[self.pc]
+        opc, modeStr = self.decode(instr)
+        if opc == 1:
+            modes = self.getModes(modeStr, 3)
+            self.add(modes)
+        elif opc == 2:
+            modes = self.getModes(modeStr, 3)
+            self.mul(modes)
+        elif opc == 3:
+            self.read()
+        elif opc == 4:
+            modes = self.getModes(modeStr, 1)
+            self.print(modes)
+        elif opc == 5:
+            modes = self.getModes(modeStr, 2)
+            self.jumpIfTrue(modes)
+        elif opc == 6:
+            modes = self.getModes(modeStr, 2)
+            self.jumpIfFalse(modes)
+        elif opc == 7:
+            modes = self.getModes(modeStr, 3)
+            self.lessThan(modes)
+        elif opc == 8:
+            modes = self.getModes(modeStr, 3)
+            self.equal(modes)
+        elif opc == 99:
+            return False
+        else:
+            print('Error!')
+            return False
+        return True
 
     def decode(self, instr):
         opc = 0
@@ -82,9 +85,12 @@ class IntPC:
         self.pc += 4
 
     def read(self):
-        data = self.inQueue.popleft()
-        self.store(self.pc+1, data, 0)
-        self.pc += 2
+        # Only do something if we have data to read
+        # This is semi blocking, it returns but doesn't advance the PC
+        if len(self.inQueue) > 0:
+            data = self.inQueue.popleft()
+            self.store(self.pc+1, data, 0)
+            self.pc += 2
 
     def print(self, mode):
         self.outQueue.append(self.fetch(self.pc+1, mode[0]))
