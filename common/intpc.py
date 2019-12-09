@@ -4,6 +4,7 @@ class IntPC:
     def __init__(self, memory):
         self.memory = list(memory)
         self.pc = 0
+        self.rb = 0
         self.inQueue  = deque()
         self.outQueue = deque()
 
@@ -21,7 +22,8 @@ class IntPC:
             modes = self.getModes(modeStr, 3)
             self.mul(modes)
         elif opc == 3:
-            self.read()
+            modes = self.getModes(modeStr, 1)
+            self.read(modes)
         elif opc == 4:
             modes = self.getModes(modeStr, 1)
             self.print(modes)
@@ -37,6 +39,9 @@ class IntPC:
         elif opc == 8:
             modes = self.getModes(modeStr, 3)
             self.equal(modes)
+        elif opc == 9:
+            modes = self.getModes(modeStr, 1)
+            self.rbAdd(modes)
         elif opc == 99:
             return False
         else:
@@ -60,17 +65,31 @@ class IntPC:
             modes[i] = int(mode)
         return modes
 
+    def alloc(self, addr):
+        if addr >= len(self.memory):
+            self.memory.extend([0] * (1 + addr - len(self.memory)))
+
     def fetch(self, add, mode=1):
+        self.alloc(add)
         if mode == 0:
+            self.alloc(int(self.memory[add]))
             return int(self.memory[int(self.memory[add])])
         elif mode == 1:
             return int(self.memory[add])
+        elif mode == 2:
+            self.alloc(self.rb + int(self.memory[add]))
+            return int(self.memory[self.rb + int(self.memory[add])])
 
     def store(self, add, data, mode=1):
+        self.alloc(add)
         if mode == 0:
+            self.alloc(int(self.memory[add]))
             self.memory[int(self.memory[add])] = str(data)
         elif mode == 1:
             self.memory[add] = str(data)
+        elif mode == 2:
+            self.alloc(self.rb + int(self.memory[add]))
+            self.memory[self.rb + int(self.memory[add])] = str(data)
 
     def add(self, mode):
         a = self.fetch(self.pc+1, mode[0])
@@ -84,12 +103,12 @@ class IntPC:
         self.store(self.pc+3, a*b, mode[2])
         self.pc += 4
 
-    def read(self):
+    def read(self, modes):
         # Only do something if we have data to read
         # This is semi blocking, it returns but doesn't advance the PC
         if len(self.inQueue) > 0:
             data = self.inQueue.popleft()
-            self.store(self.pc+1, data, 0)
+            self.store(self.pc+1, data, modes[0])
             self.pc += 2
 
     def print(self, mode):
@@ -129,3 +148,8 @@ class IntPC:
         else:
             self.store(self.pc+3, 0, modes[2])
         self.pc += 4
+
+    def rbAdd(self, modes):
+        a = self.fetch(self.pc+1, modes[0])
+        self.rb += a
+        self.pc += 2
